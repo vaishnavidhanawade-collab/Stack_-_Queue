@@ -1,0 +1,242 @@
+#include <iostream>
+#include <cstring>
+using namespace std;
+class Node {
+public:
+ char name[50];
+ Node* firstChild;
+ Node* nextSibling;
+ Node(const char memberName[]) {
+ strcpy(name, memberName);
+ firstChild = NULL;
+ nextSibling = NULL;
+ }
+};
+class FamilyTree {
+private:
+ Node* root;
+ Node* findNode(Node* current, const char memberName[]) {
+ if (current == NULL)
+ return NULL;
+ if (strcmp(current->name, memberName) == 0)
+ return current;
+ Node* result = findNode(current->firstChild, memberName);
+ if (result != NULL)
+ return result;
+ return findNode(current->nextSibling, memberName);
+ }
+ void display(Node* current, int level) {
+ if (current == NULL)
+ return;
+ for (int i = 0; i < level; i++)
+ cout << " ";
+ cout << "|-- " << current->name << endl;
+ display(current->firstChild, level + 1);
+ display(current->nextSibling, level);
+ }
+ void deleteBranch(Node* current) {
+ if (current == NULL)
+ return;
+ deleteBranch(current->firstChild);
+ deleteBranch(current->nextSibling);
+ delete current;
+ }
+public:
+ FamilyTree(const char rootName[]) {
+ root = new Node(rootName);
+ }
+ // Add a child under the given parent.
+ void addMember(const char parentName[], const char childName[]) {
+ Node* parent = findNode(root, parentName);
+ if (parent == NULL) {
+ cout << "Parent not found. Member not added.\n";
+ return;
+ }
+ if (findNode(root, childName) != NULL) {
+ cout << "This name already exists. Use a unique name.\n";
+ return;
+ }
+ Node* newNode = new Node(childName);
+ if (parent->firstChild == NULL) {
+ parent->firstChild = newNode;
+ } else {
+ Node* temp = parent->firstChild;
+ while (temp->nextSibling != NULL)
+ temp = temp->nextSibling;
+ temp->nextSibling = newNode;
+ }
+ cout << "Member added successfully.\n";
+ }
+ // Search for a member by name.
+ void searchMember(const char memberName[]) { if (findNode(root, memberName) != NULL)
+ cout << "Member found: " << memberName << endl;
+ else
+ cout << "Member not found.\n";
+ }
+ // Delete a member and the complete branch below that member.
+ void deleteMember(const char parentName[], const char childName[]) {
+ Node* parent = findNode(root, parentName);
+ if (parent == NULL) {
+ cout << "Parent not found.\n";
+ return;
+ }
+ Node* current = parent->firstChild;
+ Node* previous = NULL;
+ while (current != NULL &&
+ strcmp(current->name, childName) != 0) {
+ previous = current;
+ current = current->nextSibling;
+ }
+ if (current == NULL) {
+ cout << "Member not found under this parent.\n";
+ return;
+ }
+ // Save the next sibling before deleting the selected branch.
+ Node* next = current->nextSibling;
+ if (previous == NULL)
+ parent->firstChild = next;
+ else
+ previous->nextSibling = next;
+ current->nextSibling = NULL;
+ deleteBranch(current);
+ cout << "Member and their branch deleted successfully.\n";
+ }
+ // Display the complete tree.
+ void displayTree() {
+ cout << "\nFamily Tree:\n";
+ display(root, 0);
+ }
+ // Free all allocated memory when the object is destroyed.
+ ~FamilyTree() {
+ deleteBranch(root);
+ }
+};
+int main() {
+ char rootName[50];
+ int choice;
+ cout << "Enter the name of the first family member: ";
+ cin.getline(rootName, 50);
+ FamilyTree family(rootName);
+ do {
+ cout << "\n===== FAMILY TREE MANAGEMENT SYSTEM =====\n";
+ cout << "1. Add Family Member\n";
+ cout << "2. Search Family Member\n";
+ cout << "3. Delete Family Member\n";
+ cout << "4. Display Family Tree\n";
+ cout << "5. Exit\n";
+ cout << "Enter your choice: ";
+ cin >> choice;
+ cin.ignore(1000, '\n');
+ char parentName[50], memberName[50];
+ switch (choice) {
+ case 1:
+ cout << "Enter parent name: ";
+ cin.getline(parentName, 50);
+ cout << "Enter new member name: ";
+ cin.getline(memberName, 50);
+ family.addMember(parentName, memberName);
+ break;
+ case 2:
+ cout << "Enter member name to search: ";
+ cin.getline(memberName, 50);
+ family.searchMember(memberName);
+ break;
+ case 3:
+ cout << "Enter parent name: ";
+ cin.getline(parentName, 50);
+ cout << "Enter member name to delete: ";
+ cin.getline(memberName, 50);
+ family.deleteMember(parentName, memberName);
+ break;
+ case 4:
+ family.displayTree(); break;
+ case 5:
+ cout << "Exiting the application.\n";
+ break;
+ default:
+ cout << "Invalid choice. Please try again.\n";
+ }
+ } while (choice != 5);
+ return 0;
+}
+Program Output
+Enter the name of the first family member: Purvi Bendre
+===== FAMILY TREE MANAGEMENT SYSTEM =====
+1. Add Family Member
+2. Search Family Member
+3. Delete Family Member
+4. Display Family Tree
+5. Exit
+Enter your choice: 1
+Enter parent name: Purvi Bendre
+Enter new member name: Sharad Bendre
+Member added successfully.
+===== FAMILY TREE MANAGEMENT SYSTEM =====
+1. Add Family Member
+2. Search Family Member
+3. Delete Family Member
+4. Display Family Tree
+5. Exit
+Enter your choice: 1
+Enter parent name: Purvi Bendre
+Enter new member name: Bendre Family
+Member added successfully.
+===== FAMILY TREE MANAGEMENT SYSTEM =====
+1. Add Family Member
+2. Search Family Member
+3. Delete Family Member
+4. Display Family Tree
+5. Exit
+Enter your choice: 1
+Enter parent name: Sharad Bendre
+Enter new member name: Harshal Bendre
+Member added successfully.
+===== FAMILY TREE MANAGEMENT SYSTEM =====
+1. Add Family Member
+2. Search Family Member
+3. Delete Family Member
+4. Display Family Tree
+5. Exit
+Enter your choice: 2
+Enter member name to search: Harshal Bendre
+Member found: Harshal Bendre
+===== FAMILY TREE MANAGEMENT SYSTEM =====
+1. Add Family Member
+2. Search Family Member
+3. Delete Family Member
+4. Display Family Tree
+5. Exit
+Enter your choice: 4
+Family Tree:
+|-- Purvi Bendre
+ |-- Sharad Bendre
+ |-- Harshal Bendre
+ |-- Bendre Family
+===== FAMILY TREE MANAGEMENT SYSTEM =====
+1. Add Family Member
+2. Search Family Member
+3. Delete Family Member
+4. Display Family Tree
+5. Exit
+Enter your choice: 3
+Enter parent name: Purvi Bendre
+Enter member name to delete: Bendre Family
+Member and their branch deleted successfully.
+===== FAMILY TREE MANAGEMENT SYSTEM ===== 1. Add Family Member
+2. Search Family Member
+3. Delete Family Member
+4. Display Family Tree
+5. Exit
+Enter your choice: 4
+Family Tree:
+|-- Purvi Bendre
+ |-- Sharad Bendre
+ |-- Harshal Bendre
+===== FAMILY TREE MANAGEMENT SYSTEM =====
+1. Add Family Member
+2. Search Family Member
+3. Delete Family Member
+4. Display Family Tree
+5. Exit
+Enter your choice: 5
+Exiting the application.
